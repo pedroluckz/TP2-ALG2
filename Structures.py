@@ -15,8 +15,45 @@ class SetCoverInstance:
         self.sets_masks = [] 
 
     def load_from_or_library(self, filepath):
-        # Lógica para ler o formato Beasley e preencher costs e sets_masks
-        pass
+        with open(filepath, 'r') as f:
+            tokens = f.read().split()
+
+        pos = 0
+
+        # m linhas, n colunas
+        m = int(tokens[pos]); pos += 1
+        n = int(tokens[pos]); pos += 1
+
+        self.num_elements = m
+        self.num_sets = n
+        self.base_mask = (1 << m) - 1
+
+        # custos
+        self.costs = []
+
+        for _ in range(n):
+            self.costs.append(int(tokens[pos]))
+            pos += 1
+
+         # máscara de cada conjunto
+        self.sets_masks = [0] * n
+
+        # para cada elemento
+        for row in range(m):
+
+            k = int(tokens[pos])
+            pos += 1
+
+            for _ in range(k):
+
+                col = int(tokens[pos])
+                pos += 1
+
+                # OR-Library usa índices começando em 1
+                col -= 1
+
+                # adiciona o elemento "row"
+                self.sets_masks[col] |= (1 << row)
 
 
     def calculate_greedy_upper_bound(self):
