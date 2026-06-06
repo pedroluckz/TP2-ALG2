@@ -14,7 +14,7 @@ class SetCoverInstance:
         # Lista armazenando a máscara de bits (inteiro) de cada conjunto
         self.sets_masks = [] 
 
-    def load_from_or_library(self, filepath):
+    def load_from_file(self, filepath):
         with open(filepath, 'r') as f:
             tokens = f.read().split()
 
