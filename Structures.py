@@ -1,4 +1,4 @@
-from collections import namedtuple
+#from collections import namedtuple
 
 class SetCoverInstance:
     def __init__(self, num_elements, num_sets):
@@ -105,5 +105,6 @@ class SetCoverInstance:
 # current_cost: Custo acumulado até agora
 # covered_mask: Inteiro representando os elementos já cobertos
 # next_set_idx: Índice do próximo conjunto a ser avaliado (incluir ou não)
-Node = namedtuple('Node', ['current_cost', 'covered_mask', 'next_set_idx'])
+# selected_sets: Lista dos índices dos conjuntos selecionados até agora
+#Node = namedtuple('Node', ['current_cost', 'covered_mask', 'next_set_idx', 'selected_sets'])
 
