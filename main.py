@@ -1,6 +1,6 @@
 import time
 from Structures import SetCoverInstance
-from BranchBound import GreedyUB, SumDegreeLB, DFS, BestFirst
+from BranchBound import GreedyUB, SumDegreeLB, DFS, BestFirst, TrivialLB, TrivialUB
 
 def realizar_teste_sanidade():
     print("Iniciando Teste de Sanidade - Branch and Bound")
@@ -17,7 +17,10 @@ def realizar_teste_sanidade():
 
     # 2. Monta as estratégias
     ub = GreedyUB()
+    ub1 = TrivialUB()  # Para comparação, uma estratégia de teto "burra" que pega tudo
     lb = SumDegreeLB() 
+    lb1 = TrivialLB()  # Para comparação, uma estratégia de piso "burra" que sempre retorna 0
+    
     dfs = DFS()
     bf = BestFirst()
 

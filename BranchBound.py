@@ -12,6 +12,13 @@ class UpperBound(ABC):
     def calculate(self, instance: SetCoverInstance) -> tuple[float, list]:
         pass
 
+class TrivialUB(UpperBound):
+    def calculate(self, instance: SetCoverInstance):
+        # Solução trivial: pega absolutamente todos os conjuntos disponíveis
+        custo_total = sum(instance.costs)
+        todos_os_conjuntos = list(range(instance.num_sets))
+        return custo_total, todos_os_conjuntos
+
 class GreedyUB(UpperBound):
     def calculate(self, instance: SetCoverInstance):
         return instance.calculate_greedy_upper_bound()
@@ -29,6 +36,15 @@ class LowerBound(ABC):
     @abstractmethod
     def calculate(self, instance: SetCoverInstance, current_cost: float, covered_mask: int, next_idx: int) -> float:
         pass
+
+class TrivialLB(LowerBound):
+    def calculate(self, instance: SetCoverInstance, current_cost: float, covered_mask: int, next_idx: int) -> float:
+        # Se cobriu tudo, custa 0. Se não cobriu, o estimador "burro" também diz que custa 0.
+        # Isso efetivamente desliga a poda do Branch-and-Bound, transformando-o em Força Bruta.
+        uncovered_mask = instance.base_mask & ~covered_mask
+        if uncovered_mask == 0:
+            return 0
+        return 0.0
 
 class SumDegreeLB(LowerBound):
     def __init__(self):
@@ -107,7 +123,7 @@ class DFS:
         
         # --- CONFIGURAÇÃO DO LIMITADOR ---
         start_time = time.time()
-        # TIME_LIMIT = 120  # 2 minutos (você pode ajustar para 300 depois para testes maiores)
+        TIME_LIMIT = 120  # 2 minutos (você pode ajustar para 300 depois para testes maiores)
 
         while stack:
             current_cost, covered_mask, next_set_idx, selected_sets = stack.pop()
@@ -119,8 +135,8 @@ class DFS:
                 print(f"   -> Progresso: {nodes_visited} nós explorados em {decorrido:.1f}s | Melhor custo: {best_cost}")
 
             # Ejetor de Segurança (Time Limit)
-            # if time.time() - start_time > TIME_LIMIT:
-            #     print(f"\n[!] LIMITADOR DE TEMPO ATIVADO ({TIME_LIMIT}s). Abortando a busca...")
+            if time.time() - start_time > TIME_LIMIT:
+                print(f"\n[!] LIMITADOR DE TEMPO ATIVADO ({TIME_LIMIT}s). Abortando a busca...")
                 break
 
             if covered_mask == instance.base_mask:
