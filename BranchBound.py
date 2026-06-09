@@ -123,7 +123,7 @@ class DFS:
         
         # --- CONFIGURAÇÃO DO LIMITADOR ---
         start_time = time.time()
-        TIME_LIMIT = 120  # 2 minutos (você pode ajustar para 300 depois para testes maiores)
+        #TIME_LIMIT = 120  # 2 minutos (você pode ajustar para 300 depois para testes maiores)
 
         while stack:
             current_cost, covered_mask, next_set_idx, selected_sets = stack.pop()
@@ -135,9 +135,9 @@ class DFS:
                 print(f"   -> Progresso: {nodes_visited} nós explorados em {decorrido:.1f}s | Melhor custo: {best_cost}")
 
             # Ejetor de Segurança (Time Limit)
-            if time.time() - start_time > TIME_LIMIT:
-                print(f"\n[!] LIMITADOR DE TEMPO ATIVADO ({TIME_LIMIT}s). Abortando a busca...")
-                break
+            # if time.time() - start_time > TIME_LIMIT:
+            #     print(f"\n[!] LIMITADOR DE TEMPO ATIVADO ({TIME_LIMIT}s). Abortando a busca...")
+            #     break
 
             if covered_mask == instance.base_mask:
                 if current_cost < best_cost:
