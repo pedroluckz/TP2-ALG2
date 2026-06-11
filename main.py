@@ -1,6 +1,6 @@
 import time
 from Structures import SetCoverInstance
-from BranchBound import GreedyUB, SumDegreeLB, DFS, BestFirst, TrivialLB, TrivialUB
+from BranchBound import GreedyUB, SumDegreeLB, DFS, BestFirst, PackingLB
 
 def realizar_teste_sanidade():
     print("Iniciando Teste de Sanidade - Branch and Bound")
@@ -17,15 +17,15 @@ def realizar_teste_sanidade():
 
     # 2. Monta as estratégias
     ub = GreedyUB()
-    ub1 = TrivialUB()  # Para comparação, uma estratégia de teto "burra" que pega tudo
     lb = SumDegreeLB() 
-    lb1 = TrivialLB()  # Para comparação, uma estratégia de piso "burra" que sempre retorna 0
+    lb1 = PackingLB() 
     
     dfs = DFS()
     bf = BestFirst()
 
 
     # 3. Executa e cronometra
+    # DFS com SumDegreeLB e GreedyUB
     start_time = time.time()
     custo, solucao, nos = dfs.solve(instancia, ub, lb)
     end_time = time.time()
@@ -36,12 +36,11 @@ def realizar_teste_sanidade():
     print(f"Total de Nós Explorados: {nos}")
     print(f"Tempo de Execução: {end_time - start_time:.4f} segundos")
 
+    # Best-First com SumDegreeLB e GreedyUB
     start_time1 = time.time()
     custo1, solucao1, nos1 = bf.solve(instancia, ub, lb)
     end_time1 = time.time()
 
-
-    # O scp41 é conhecido por ter o custo ótimo de 429. Se o seu der isso, está perfeito!
 
     print(f"\n--- RESULTADOS - Best-First ---")
     print(f"Custo Ótimo Encontrado: {custo1}")

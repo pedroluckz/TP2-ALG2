@@ -31,11 +31,13 @@ class SetCoverInstance:
         # custos
         self.costs = []
 
+        ## Ignorando os pesos, coloca tudo como 1
         for _ in range(n):
-            self.costs.append(int(tokens[pos]))
+            ignorar_custo = int(tokens[pos])  # O custo é lido, mas não usado na heurística gulosa
             pos += 1
+            self.costs.append(1)
 
-         # máscara de cada conjunto
+        # máscara de cada conjunto
         self.sets_masks = [0] * n
 
         # para cada elemento

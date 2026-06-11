@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 import heapq
 import math
 import time
@@ -7,17 +6,10 @@ from Structures import SetCoverInstance
 # ==========================================
 # 1. ESTRATÉGIAS DE LIMITE SUPERIOR (UPPER BOUND)
 # ==========================================
-class UpperBound(ABC):
-    @abstractmethod
+class UpperBound:
     def calculate(self, instance: SetCoverInstance) -> tuple[float, list]:
         pass
 
-class TrivialUB(UpperBound):
-    def calculate(self, instance: SetCoverInstance):
-        # Solução trivial: pega absolutamente todos os conjuntos disponíveis
-        custo_total = sum(instance.costs)
-        todos_os_conjuntos = list(range(instance.num_sets))
-        return custo_total, todos_os_conjuntos
 
 class GreedyUB(UpperBound):
     def calculate(self, instance: SetCoverInstance):
@@ -26,25 +18,81 @@ class GreedyUB(UpperBound):
 # ==========================================
 # 2. ESTRATÉGIAS DE LIMITE INFERIOR (LOWER BOUND)
 # ==========================================
-class LowerBound(ABC):
+class LowerBound:
     def __init__(self):
         self.ordered_indices = None
         
     def set_mapping(self, instance: SetCoverInstance, ordered_indices: list):
         self.ordered_indices = ordered_indices
 
-    @abstractmethod
     def calculate(self, instance: SetCoverInstance, current_cost: float, covered_mask: int, next_idx: int) -> float:
         pass
 
-class TrivialLB(LowerBound):
-    def calculate(self, instance: SetCoverInstance, current_cost: float, covered_mask: int, next_idx: int) -> float:
-        # Se cobriu tudo, custa 0. Se não cobriu, o estimador "burro" também diz que custa 0.
-        # Isso efetivamente desliga a poda do Branch-and-Bound, transformando-o em Força Bruta.
-        uncovered_mask = instance.base_mask & ~covered_mask
-        if uncovered_mask == 0:
+    
+class PackingLB(LowerBound):
+    def __init__(self):
+        super().__init__()
+        self.or_suffix = []
+
+    def set_mapping(self, instance: SetCoverInstance, ordered_indices: list):
+        super().set_mapping(instance, ordered_indices)
+        n = instance.num_sets
+        self.or_suffix = [0] * (n + 1)
+        
+        current_or = 0
+        # Pré-calcula a poda de viabilidade de trás para frente
+        for i in range(n - 1, -1, -1):
+            real_idx = ordered_indices[i]
+            current_or |= instance.sets_masks[real_idx]
+            self.or_suffix[i] = current_or
+
+    def calculate(self, instance, current_cost, covered_mask, next_idx):
+        if next_idx >= instance.num_sets:
+            return float('inf')
+            
+        # 1. Poda de Viabilidade O(1) (NUNCA tire isso, é a sua rede de segurança)
+        if (covered_mask | self.or_suffix[next_idx]) != instance.base_mask:
+            return float('inf')
+
+        # 2. Packing Lower Bound (Grafo de Conflitos via Bits)
+        uncovered = instance.base_mask & ~covered_mask
+        if uncovered == 0:
             return 0
-        return 0.0
+            
+        valid_elements = uncovered
+        lb_added = 0
+        
+        while valid_elements > 0:
+            # Truque clássico de baixo nível: isola o bit '1' mais à direita (o primeiro elemento válido)
+            e_mask = valid_elements & -valid_elements
+            
+            min_cost_e = float('inf')
+            conflict_mask = 0
+            
+            # Varre os conjuntos disponíveis para construir o grafo de conflito desse elemento
+            for i in range(next_idx, instance.num_sets):
+                real_idx = self.ordered_indices[i]
+                s_mask = instance.sets_masks[real_idx]
+                
+                # Se este conjunto cobre o nosso elemento 'e'
+                if s_mask & e_mask:
+                    cost = instance.costs[real_idx]
+                    if cost < min_cost_e:
+                        min_cost_e = cost
+                    
+                    # Adiciona esse conjunto inteiro à máscara de conflito
+                    conflict_mask |= s_mask
+                    
+            if min_cost_e == float('inf'):
+                # Existe um elemento que não pode mais ser coberto por NENHUM conjunto restante
+                return float('inf')
+                
+            lb_added += min_cost_e
+            
+            # Remove do pool de candidatos o elemento 'e' e TODOS os seus vizinhos de conflito
+            valid_elements &= ~conflict_mask
+            
+        return lb_added
 
 class SumDegreeLB(LowerBound):
     def __init__(self):
