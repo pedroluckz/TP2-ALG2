@@ -1,4 +1,5 @@
 import random
+import os
 
 class InstanceGenerator:
 
@@ -114,7 +115,7 @@ class InstanceGenerator:
             "sets_masks": sets_masks
         }
     
-    def save_to_file(self, instance):
+    def save_to_file(self, instance, directory):
 
         def write_numbers(f, numbers, per_line=12):
 
@@ -127,11 +128,13 @@ class InstanceGenerator:
 
             if len(numbers) % per_line != 0:
                 f.write("\n")
-        
+
+        os.makedirs(directory, exist_ok=True)
+
         if instance["type"] == "random":
 
-            filepath = (
-                f"generatedinstances/rand_d{instance['density']}_"
+            filename = (
+                f"rand_d{instance['density']}_"
                 f"m{instance['m']}_"
                 f"n{instance['n']}_"
                 f"s{self.seed}.txt"
@@ -139,7 +142,12 @@ class InstanceGenerator:
 
         else:
 
-            filepath = f"generatedinstances/adv_m{instance['m']}_n{instance['n']}.txt"
+            filename = (
+                f"adv_m{instance['m']}_"
+                f"n{instance['n']}.txt"
+            )
+
+        filepath = os.path.join(directory, filename)
 
         m = instance["m"]
         n = instance["n"]
@@ -178,6 +186,7 @@ if __name__ == "__main__":
     fixed_n = 200
 
     m_values = [
+        50,
         100,
         200,
         400,
@@ -190,10 +199,10 @@ if __name__ == "__main__":
     fixed_m = 200
 
     n_values = [
+        50,
         100,
-        200,
         400,
-        800
+        800,
     ]
 
     instance_id = 0
@@ -218,7 +227,16 @@ if __name__ == "__main__":
                     density=density
                 )
 
-                generator.save_to_file(instance)
+                directory = (
+                    f"generatedinstances/"
+                    f"d{density}/"
+                    f"m{m}_n{fixed_n}"
+                )
+
+                generator.save_to_file(
+                    instance,
+                    directory
+)
 
                 instance_id += 1
 
@@ -242,7 +260,16 @@ if __name__ == "__main__":
                     density=density
                 )
 
-                generator.save_to_file(instance)
+                directory = (
+                    f"generatedinstances/"
+                    f"d{density}/"
+                    f"m{fixed_m}_n{n}"
+                )
+
+                generator.save_to_file(
+                    instance,
+                    directory
+                )
 
                 instance_id += 1
 
