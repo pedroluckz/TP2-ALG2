@@ -3,17 +3,17 @@ import random
 class InstanceGenerator:
 
     def __init__(self, seed=None):
+        self.seed=seed
         self.rng = random.Random(seed)
 
     def generate_random(self,
                         m,
                         n,
-                        density,
-                        min_cost=1,
-                        max_cost=100):
+                        density
+                        ):
 
         costs = [
-            self.rng.randint(min_cost, max_cost)
+            1
             for _ in range(n)
         ]
 
@@ -108,7 +108,7 @@ class InstanceGenerator:
 
         return {
             "type": "adversarial",
-            "m": n,
+            "m": m,
             "n": len(sets_masks),
             "costs": costs,
             "sets_masks": sets_masks
@@ -133,7 +133,8 @@ class InstanceGenerator:
             filepath = (
                 f"generatedinstances/rand_d{instance['density']}_"
                 f"m{instance['m']}_"
-                f"n{instance['n']}.txt"
+                f"n{instance['n']}_"
+                f"s{self.seed}.txt"
             )
 
         else:
@@ -167,37 +168,94 @@ class InstanceGenerator:
 
 if __name__ == "__main__":
 
-    generator = InstanceGenerator(seed=42)
+    densities = [0.1, 0.3, 0.5]
 
-    densities = [0.1, 0.3, 0.5, 0.7, 0.9]
+    NUM_INSTANCES = 20
 
-    scales = [
-        (50, 100),
-        (100, 200),
-        (200, 400),
-        (400, 800),
-        (600, 1200)
+    #
+    # Variando m
+    #
+    fixed_n = 200
+
+    m_values = [
+        100,
+        200,
+        400,
+        800
     ]
 
-    # Instâncias aleatórias
+    #
+    # Variando n
+    #
+    fixed_m = 200
+
+    n_values = [
+        100,
+        200,
+        400,
+        800
+    ]
+
+    instance_id = 0
+
+    # --------------------
+    # m variável
+    # --------------------
+
     for density in densities:
 
-        for m, n in scales:
+        for m in m_values:
 
-            instance = generator.generate_random(
-                m=m,
-                n=n,
-                density=density
-            )
+            for rep in range(NUM_INSTANCES):
 
-            generator.save_to_file(instance)
+                generator = InstanceGenerator(
+                    seed=instance_id
+                )
 
-    # Instâncias adversariais
-    for n in [26, 34, 38, 42, 46]:
+                instance = generator.generate_random(
+                    m=m,
+                    n=fixed_n,
+                    density=density
+                )
 
-        instance = generator.generate_adversarial(n)
+                generator.save_to_file(instance)
 
-        generator.save_to_file(instance)
+                instance_id += 1
+
+    # --------------------
+    # n variável
+    # --------------------
+
+    for density in densities:
+
+        for n in n_values:
+
+            for rep in range(NUM_INSTANCES):
+
+                generator = InstanceGenerator(
+                    seed=instance_id
+                )
+
+                instance = generator.generate_random(
+                    m=fixed_m,
+                    n=n,
+                    density=density
+                )
+
+                generator.save_to_file(instance)
+
+                instance_id += 1
+
+    # --------------------
+    # adversariais
+    # --------------------
+
+    #for m in [26, 46, 66, 86, 106]:
+
+        #for rep in range(NUM_INSTANCES):
+
+            #instance = generator.generate_adversarial(m)
+
+            #generator.save_to_file(instance)
 
     print("Instâncias geradas com sucesso.")
-        
