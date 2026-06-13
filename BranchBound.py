@@ -173,49 +173,59 @@ class DFS:
         start_time = time.time()
         #TIME_LIMIT = 120  # 2 minutos (você pode ajustar para 300 depois para testes maiores)
 
-        while stack:
-            current_cost, covered_mask, next_set_idx, selected_sets = stack.pop()
-            nodes_visited += 1
+        try:
+            while stack:
+                current_cost, covered_mask, next_set_idx, selected_sets = stack.pop()
+                nodes_visited += 1
 
-            # Monitor de Progresso (Feedback Visual)
-            if nodes_visited % 500000 == 0:
-                decorrido = time.time() - start_time
-                print(f"   -> Progresso: {nodes_visited} nós explorados em {decorrido:.1f}s | Melhor custo: {best_cost}")
+                # Monitor de Progresso (Feedback Visual)
+                if nodes_visited % 500000 == 0:
+                    decorrido = time.time() - start_time
+                    print(f"   -> Progresso: {nodes_visited} nós explorados em {decorrido:.1f}s | Melhor custo: {best_cost}")
 
-            # Ejetor de Segurança (Time Limit)
-            # if time.time() - start_time > TIME_LIMIT:
-            #     print(f"\n[!] LIMITADOR DE TEMPO ATIVADO ({TIME_LIMIT}s). Abortando a busca...")
-            #     break
+                # Ejetor de Segurança (Time Limit)
+                # if time.time() - start_time > TIME_LIMIT:
+                #     print(f"\n[!] LIMITADOR DE TEMPO ATIVADO ({TIME_LIMIT}s). Abortando a busca...")
+                #     break
 
-            if covered_mask == instance.base_mask:
-                if current_cost < best_cost:
-                    best_cost = current_cost
-                    best_solution = selected_sets
-                    print(f"[*] Novo melhor custo encontrado: {best_cost}")
-                continue
+                if covered_mask == instance.base_mask:
+                    if current_cost < best_cost:
+                        best_cost = current_cost
+                        best_solution = selected_sets
+                        print(f"[*] Novo melhor custo encontrado: {best_cost}")
+                    continue
 
-            if next_set_idx >= instance.num_sets:
-                continue
+                if next_set_idx >= instance.num_sets:
+                    continue
 
-            lb = lb_strategy.calculate(instance, current_cost, covered_mask, next_set_idx)
+                lb = lb_strategy.calculate(instance, current_cost, covered_mask, next_set_idx)
 
-            if current_cost + lb >= best_cost:
-                continue
+                if current_cost + lb >= best_cost:
+                    continue
 
-            real_idx = ordered_indices[next_set_idx]
-            set_mask = instance.sets_masks[real_idx]
-            set_cost = instance.costs[real_idx]
+                real_idx = ordered_indices[next_set_idx]
+                set_mask = instance.sets_masks[real_idx]
+                set_cost = instance.costs[real_idx]
 
-            stack.append((current_cost, covered_mask, next_set_idx + 1, selected_sets))
+                stack.append((current_cost, covered_mask, next_set_idx + 1, selected_sets))
 
-            new_elements = set_mask & ~covered_mask
-            if new_elements > 0:
-                stack.append((
-                    current_cost + set_cost,
-                    covered_mask | set_mask,
-                    next_set_idx + 1,
-                    selected_sets + [real_idx]
-                ))
+                new_elements = set_mask & ~covered_mask
+                if new_elements > 0:
+                    stack.append((
+                        current_cost + set_cost,
+                        covered_mask | set_mask,
+                        next_set_idx + 1,
+                        selected_sets + [real_idx]
+                    ))
+        except BaseException as e:
+            # Se o processo for interrompido de forma violenta, ele guarda os dados no 'self' antes de morrer
+            self.partial_cost = best_cost
+            self.partial_nodes = nodes_visited
+            raise e # Repassa a interrupção para a main.py
+            
+        # Se terminar naturalmente, também guarda os dados
+        self.partial_cost = best_cost
+        self.partial_nodes = nodes_visited
 
         return best_cost, best_solution, nodes_visited
 
@@ -241,49 +251,59 @@ class BestFirst:
         start_time = time.time()
         # TIME_LIMIT = 120  # 2 minutos de limite
 
-        while pq:
-            priority, _, current_cost, covered_mask, next_idx, selected = heapq.heappop(pq)
-            nodes_visited += 1
+        try:
+            while pq:
+                priority, _, current_cost, covered_mask, next_idx, selected = heapq.heappop(pq)
+                nodes_visited += 1
 
-            # Monitor de Progresso (Feedback Visual)
-            if nodes_visited % 500000 == 0:
-                decorrido = time.time() - start_time
-                print(f"   -> Progresso: {nodes_visited} nós explorados em {decorrido:.1f}s | Melhor custo: {best_cost}")
+                # Monitor de Progresso (Feedback Visual)
+                if nodes_visited % 500000 == 0:
+                    decorrido = time.time() - start_time
+                    print(f"   -> Progresso: {nodes_visited} nós explorados em {decorrido:.1f}s | Melhor custo: {best_cost}")
 
-            # Ejetor de Segurança (Time Limit)
-            # if time.time() - start_time > TIME_LIMIT:
-            #     print(f"\n[!] LIMITADOR DE TEMPO ATIVADO ({TIME_LIMIT}s). Abortando a busca Best-First...")
-            #     break
+                # Ejetor de Segurança (Time Limit)
+                # if time.time() - start_time > TIME_LIMIT:
+                #     print(f"\n[!] LIMITADOR DE TEMPO ATIVADO ({TIME_LIMIT}s). Abortando a busca Best-First...")
+                #     break
 
-            # Se a prioridade do MELHOR nó da fila já bateu no teto, acabou a busca!
-            if priority >= best_cost:
-                break
+                # Se a prioridade do MELHOR nó da fila já bateu no teto, acabou a busca!
+                if priority >= best_cost:
+                    break
 
-            if covered_mask == instance.base_mask:
-                if current_cost < best_cost:
-                    best_cost = current_cost
-                    best_solution = selected
-                    print(f"[*] Novo melhor custo encontrado: {best_cost}")
-                continue
+                if covered_mask == instance.base_mask:
+                    if current_cost < best_cost:
+                        best_cost = current_cost
+                        best_solution = selected
+                        print(f"[*] Novo melhor custo encontrado: {best_cost}")
+                    continue
 
-            if next_idx >= instance.num_sets:
-                continue
+                if next_idx >= instance.num_sets:
+                    continue
 
-            real_idx = ordered_indices[next_idx]
-            set_mask = instance.sets_masks[real_idx]
-            set_cost = instance.costs[real_idx]
+                real_idx = ordered_indices[next_idx]
+                set_mask = instance.sets_masks[real_idx]
+                set_cost = instance.costs[real_idx]
 
-            lb_without = lb_strategy.calculate(instance, current_cost, covered_mask, next_idx + 1)
-            if current_cost + lb_without < best_cost:
-                heapq.heappush(pq, (current_cost + lb_without, nodes_visited + 1, current_cost, covered_mask, next_idx + 1, selected))
+                lb_without = lb_strategy.calculate(instance, current_cost, covered_mask, next_idx + 1)
+                if current_cost + lb_without < best_cost:
+                    heapq.heappush(pq, (current_cost + lb_without, nodes_visited + 1, current_cost, covered_mask, next_idx + 1, selected))
 
-            new_elements = set_mask & ~covered_mask
-            if new_elements > 0:
-                new_cost = current_cost + set_cost
-                new_covered = covered_mask | set_mask
-                lb_with = lb_strategy.calculate(instance, new_cost, new_covered, next_idx + 1)
+                new_elements = set_mask & ~covered_mask
+                if new_elements > 0:
+                    new_cost = current_cost + set_cost
+                    new_covered = covered_mask | set_mask
+                    lb_with = lb_strategy.calculate(instance, new_cost, new_covered, next_idx + 1)
+                    
+                    if new_cost + lb_with < best_cost:
+                        heapq.heappush(pq, (new_cost + lb_with, nodes_visited + 2, new_cost, new_covered, next_idx + 1, selected + [real_idx]))
                 
-                if new_cost + lb_with < best_cost:
-                    heapq.heappush(pq, (new_cost + lb_with, nodes_visited + 2, new_cost, new_covered, next_idx + 1, selected + [real_idx]))
-
+        except BaseException as e:
+            # Se o processo for interrompido de forma violenta, ele guarda os dados no 'self' antes de morrer
+            self.partial_cost = best_cost
+            self.partial_nodes = nodes_visited
+            raise e # Repassa a interrupção para a main.py
+            
+        # Se terminar naturalmente, também guarda os dados
+        self.partial_cost = best_cost
+        self.partial_nodes = nodes_visited
         return best_cost, best_solution, nodes_visited

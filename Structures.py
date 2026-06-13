@@ -1,5 +1,3 @@
-#from collections import namedtuple
-
 class SetCoverInstance:
     def __init__(self, num_elements, num_sets):
         self.num_elements = num_elements

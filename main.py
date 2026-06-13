@@ -19,8 +19,8 @@ CSV_FILES = {
     "bf_sumdeg":    "results_5_bestfirst_sumdegreeLB.csv",
 }
 
-HEADERS_EXACT  = ["arquivo", "densidade", "m", "n", "custo", "tempo_s"]
-HEADERS_BB     = ["arquivo", "densidade", "m", "n", "custo", "nos_explorados", "tempo_s"]
+HEADERS_EXACT  = ["arquivo", "densidade", "m", "n", "status", "custo", "tempo_s"]
+HEADERS_BB     = ["arquivo", "densidade", "m", "n", "status", "custo", "nos_explorados", "tempo_s"]
 
 # ============================================================
 # DESCOBERTA DE INSTÂNCIAS
@@ -111,6 +111,7 @@ def run_greedy(inst: SetCoverInstance, info: dict) -> dict:
         "densidade": info["density"],
         "m":         inst.num_elements,
         "n":         inst.num_sets,
+        "status":    "OPTIMAL",
         "custo":     custo,
         "tempo_s":   round(elapsed, 6),
     }
@@ -118,35 +119,69 @@ def run_greedy(inst: SetCoverInstance, info: dict) -> dict:
 # ============================================================
 # ABORDAGEM 2-5 – BRANCH AND BOUND (DFS / Best-First)
 # ============================================================
-def run_bb(inst: SetCoverInstance, info: dict,
-           solver_cls, lb_cls) -> dict:
-
+def run_bb(inst: SetCoverInstance, info: dict, solver_cls, lb_cls) -> dict:
     ub_strat = GreedyUB()
     lb_strat = lb_cls()
     solver   = solver_cls()
 
-    def _solve():
-        return solver.solve(inst, ub_strat, lb_strat)
+    # Prepara as variáveis de resgate com N/A caso o código quebre no milissegundo zero
+    solver.partial_cost = "N/A"
+    solver.partial_nodes = "N/A"
 
     t0 = time.time()
-    result, timed_out = run_with_timeout(_solve, TIME_LIMIT)
+    status = "OPTIMAL"
+    
+    try:
+        # Usamos o seu run_with_timeout intacto. 
+        # Ele vai rodar o solver e disparar o TimeoutError se passar do tempo.
+        result, timed_out = run_with_timeout(lambda: solver.solve(inst, ub_strat, lb_strat), TIME_LIMIT)
+        
+        if timed_out:
+            status = "TIMEOUT"
+            
+    except MemoryError:
+        status = "OUT_OF_MEMORY"
+    except Exception as e:
+        # Captura qualquer outro erro que possa acontecer
+        status = f"ERRO"
+
     elapsed = time.time() - t0
 
-    if timed_out or result is None:
-        custo = "TIMEOUT"
-        nos   = "N/A"
-    else:
-        custo, _, nos = result
-
+    # O PULO DO GATO: Puxa os dados direto do objeto solver!
+    # Se estourou tempo ou memória, os dados reais estão salvos aqui.
     return {
         "arquivo":        info["filename"],
         "densidade":      info["density"],
         "m":              inst.num_elements,
         "n":              inst.num_sets,
-        "custo":          custo,
-        "nos_explorados": nos,
+        "status":         status,
+        "custo":          solver.partial_cost,
+        "nos_explorados": solver.partial_nodes,
         "tempo_s":        round(elapsed, 6),
     }
+
+    # def _solve():
+    #     return solver.solve(inst, ub_strat, lb_strat)
+
+    # t0 = time.time()
+    # result, timed_out = run_with_timeout(_solve, TIME_LIMIT)
+    # elapsed = time.time() - t0
+
+    # if timed_out or result is None:
+    #     custo = "TIMEOUT"
+    #     nos   = "N/A"
+    # else:
+    #     custo, _, nos = result
+
+    # return {
+    #     "arquivo":        info["filename"],
+    #     "densidade":      info["density"],
+    #     "m":              inst.num_elements,
+    #     "n":              inst.num_sets,
+    #     "custo":          custo,
+    #     "nos_explorados": nos,
+    #     "tempo_s":        round(elapsed, 6),
+    # }
 
 # ============================================================
 # UTILITÁRIO – escrita CSV incremental
@@ -177,29 +212,29 @@ def main():
         inst = load_instance(info)
 
         # ---- 1. Greedy ----
-        row = run_greedy(inst, info)
-        append_csv(CSV_FILES["greedy"], row, HEADERS_EXACT)
-        print(f"         Greedy        → custo={row['custo']}  t={row['tempo_s']}s")
+        # row = run_greedy(inst, info)
+        # append_csv(CSV_FILES["greedy"], row, HEADERS_EXACT)
+        # print(f"         Greedy        → custo={row['custo']}  t={row['tempo_s']}s")
 
         # ---- 2. DFS + PackingLB ----
-        row = run_bb(inst, info, DFS, PackingLB)
-        append_csv(CSV_FILES["dfs_packing"], row, HEADERS_BB)
-        print(f"         DFS+Packing   → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
+        # row = run_bb(inst, info, DFS, PackingLB)
+        # append_csv(CSV_FILES["dfs_packing"], row, HEADERS_BB)
+        # print(f"         DFS+Packing   → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 3. DFS + SumDegreeLB ----
-        #row = run_bb(inst, info, DFS, SumDegreeLB)
-        #append_csv(CSV_FILES["dfs_sumdeg"], row, HEADERS_BB)
-        #print(f"         DFS+SumDeg    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
+        row = run_bb(inst, info, DFS, SumDegreeLB)
+        append_csv(CSV_FILES["dfs_sumdeg"], row, HEADERS_BB)
+        print(f"         DFS+SumDeg    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 4. Best-First + PackingLB ----
-        #row = run_bb(inst, info, BestFirst, PackingLB)
-        #append_csv(CSV_FILES["bf_packing"], row, HEADERS_BB)
-        #print(f"         BF+Packing    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
+        # row = run_bb(inst, info, BestFirst, PackingLB)
+        # append_csv(CSV_FILES["bf_packing"], row, HEADERS_BB)
+        # print(f"         BF+Packing    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 5. Best-First + SumDegreeLB ----
-        #row = run_bb(inst, info, BestFirst, SumDegreeLB)
-        #append_csv(CSV_FILES["bf_sumdeg"], row, HEADERS_BB)
-        #print(f"         BF+SumDeg     → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
+        row = run_bb(inst, info, BestFirst, SumDegreeLB)
+        append_csv(CSV_FILES["bf_sumdeg"], row, HEADERS_BB)
+        print(f"         BF+SumDeg     → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         print()
 
