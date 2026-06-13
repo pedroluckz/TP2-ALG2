@@ -183,26 +183,26 @@ if __name__ == "__main__":
     #
     # Variando m
     #
-    fixed_n = 200
+    fixed_n = 75
 
     m_values = [
+        25,
         50,
+        75,
         100,
-        200,
-        400,
-        800
+        125
     ]
 
     #
     # Variando n
     #
-    fixed_m = 200
+    fixed_m = 75
 
     n_values = [
+        25,
         50,
         100,
-        400,
-        800,
+        125
     ]
 
     instance_id = 0
