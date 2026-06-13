@@ -167,11 +167,6 @@ def main():
     print("  EXPERIMENTO SET COVER – 5 ABORDAGENS")
     print("=" * 60)
 
-    # Limpa CSVs antigos para não acumular linhas duplicadas
-    for csv_path in CSV_FILES.values():
-        if os.path.isfile(csv_path):
-            os.remove(csv_path)
-
     instances = discover_instances(INSTANCES_ROOT)
     total = len(instances)
     print(f"Instâncias encontradas: {total}\n")
@@ -192,19 +187,19 @@ def main():
         print(f"         DFS+Packing   → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 3. DFS + SumDegreeLB ----
-        row = run_bb(inst, info, DFS, SumDegreeLB)
-        append_csv(CSV_FILES["dfs_sumdeg"], row, HEADERS_BB)
-        print(f"         DFS+SumDeg    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
+        #row = run_bb(inst, info, DFS, SumDegreeLB)
+        #append_csv(CSV_FILES["dfs_sumdeg"], row, HEADERS_BB)
+        #print(f"         DFS+SumDeg    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 4. Best-First + PackingLB ----
-        row = run_bb(inst, info, BestFirst, PackingLB)
-        append_csv(CSV_FILES["bf_packing"], row, HEADERS_BB)
-        print(f"         BF+Packing    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
+        #row = run_bb(inst, info, BestFirst, PackingLB)
+        #append_csv(CSV_FILES["bf_packing"], row, HEADERS_BB)
+        #print(f"         BF+Packing    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 5. Best-First + SumDegreeLB ----
-        row = run_bb(inst, info, BestFirst, SumDegreeLB)
-        append_csv(CSV_FILES["bf_sumdeg"], row, HEADERS_BB)
-        print(f"         BF+SumDeg     → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
+        #row = run_bb(inst, info, BestFirst, SumDegreeLB)
+        #append_csv(CSV_FILES["bf_sumdeg"], row, HEADERS_BB)
+        #print(f"         BF+SumDeg     → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         print()
 
