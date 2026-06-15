@@ -1,6 +1,7 @@
 import time
 import os
 import csv
+import resource
 from Structures import SetCoverInstance
 from BranchBound import GreedyUB, SumDegreeLB, DFS, BestFirst, PackingLB
 
@@ -20,7 +21,7 @@ CSV_FILES = {
 }
 
 HEADERS_EXACT  = ["arquivo", "densidade", "m", "n", "status", "custo", "tempo_s"]
-HEADERS_BB     = ["arquivo", "densidade", "m", "n", "status", "custo", "nos_explorados", "tempo_s"]
+HEADERS_BB = ["arquivo", "densidade", "m", "n", "status", "custo", "nos_explorados", "nos_podados", "memoria_mb", "tempo_s"]
 
 # ============================================================
 # DESCOBERTA DE INSTÂNCIAS
@@ -124,31 +125,33 @@ def run_bb(inst: SetCoverInstance, info: dict, solver_cls, lb_cls) -> dict:
     lb_strat = lb_cls()
     solver   = solver_cls()
 
-    # Prepara as variáveis de resgate com N/A caso o código quebre no milissegundo zero
+    # Prepara as variáveis de resgate (Caixa Preta)
     solver.partial_cost = "N/A"
     solver.partial_nodes = "N/A"
+    solver.nodes_pruned = "N/A" # <-- NOVO RASTREADOR DE PODA
 
     t0 = time.time()
     status = "OPTIMAL"
     
     try:
-        # Usamos o seu run_with_timeout intacto. 
-        # Ele vai rodar o solver e disparar o TimeoutError se passar do tempo.
         result, timed_out = run_with_timeout(lambda: solver.solve(inst, ub_strat, lb_strat), TIME_LIMIT)
-        
         if timed_out:
             status = "TIMEOUT"
             
     except MemoryError:
         status = "OUT_OF_MEMORY"
     except Exception as e:
-        # Captura qualquer outro erro que possa acontecer
         status = f"ERRO"
 
     elapsed = time.time() - t0
 
-    # O PULO DO GATO: Puxa os dados direto do objeto solver!
-    # Se estourou tempo ou memória, os dados reais estão salvos aqui.
+    # Rastreia o pico exato de memória RAM consumida pelo Linux (em Megabytes)
+    try:
+        mem_kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        mem_mb = round(mem_kb / 1024.0, 2)
+    except:
+        mem_mb = "N/A" # Fallback caso rode no Windows acidentalmente
+
     return {
         "arquivo":        info["filename"],
         "densidade":      info["density"],
@@ -157,6 +160,8 @@ def run_bb(inst: SetCoverInstance, info: dict, solver_cls, lb_cls) -> dict:
         "status":         status,
         "custo":          solver.partial_cost,
         "nos_explorados": solver.partial_nodes,
+        "nos_podados":    solver.nodes_pruned,  # <-- SALVANDO A PODA
+        "memoria_mb":     mem_mb,               # <-- SALVANDO A RAM
         "tempo_s":        round(elapsed, 6),
     }
 
@@ -222,9 +227,9 @@ def main():
         # print(f"         DFS+Packing   → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 3. DFS + SumDegreeLB ----
-        row = run_bb(inst, info, DFS, SumDegreeLB)
-        append_csv(CSV_FILES["dfs_sumdeg"], row, HEADERS_BB)
-        print(f"         DFS+SumDeg    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
+        # row = run_bb(inst, info, DFS, SumDegreeLB)
+        # append_csv(CSV_FILES["dfs_sumdeg"], row, HEADERS_BB)
+        # print(f"         DFS+SumDeg    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 4. Best-First + PackingLB ----
         # row = run_bb(inst, info, BestFirst, PackingLB)
