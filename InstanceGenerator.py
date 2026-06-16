@@ -53,11 +53,6 @@ class InstanceGenerator:
     
     def generate_adversarial(self, m):
 
-        if (m // 2) % 2 == 0:
-            raise ValueError(
-                "n deve ser escolhido de forma que n/2 seja ímpar."
-            )
-
         A = set(range(0, m, 2))
         B = set(range(1, m, 2))
 
@@ -91,7 +86,11 @@ class InstanceGenerator:
             uncovered_A = len(A - covered)
             uncovered_B = len(B - covered)
 
+            
             size = max(uncovered_A, uncovered_B) + 1
+
+            if (size >= uncovered_A + uncovered_B):
+                size = max(uncovered_A, uncovered_B)
 
             remaining = sorted(set(range(m)) - covered)
 
@@ -236,7 +235,7 @@ if __name__ == "__main__":
                 generator.save_to_file(
                     instance,
                     directory
-)
+                )
 
                 instance_id += 1
 
@@ -277,12 +276,16 @@ if __name__ == "__main__":
     # adversariais
     # --------------------
 
-    #for m in [26, 46, 66, 86, 106]:
+    for m in [125, 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000, 3250, 3500, 3750, 4000, 4250, 4500, 4750]:
 
-        #for rep in range(NUM_INSTANCES):
+        for rep in range(NUM_INSTANCES):
 
-            #instance = generator.generate_adversarial(m)
+            instance = generator.generate_adversarial(m)
 
-            #generator.save_to_file(instance)
+            directory = (
+                f"generatedinstances/"
+                f"adversarial/"
+            )
+            generator.save_to_file(instance, directory)
 
     print("Instâncias geradas com sucesso.")
