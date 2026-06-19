@@ -8,8 +8,8 @@ from BranchBound import GreedyUB, SumDegreeLB, DFS, BestFirst, PackingLB
 # ============================================================
 # CONFIGURAÇÕES
 # ============================================================
-INSTANCES_ROOT = "generatedinstances"   # pasta raiz com as instâncias
-TIME_LIMIT     = 1800                    # segundos por execução (0 = sem limite)
+INSTANCES_ROOT = "OR_instances"   # pasta raiz com as instâncias
+TIME_LIMIT     = 7200                    # segundos por execução (0 = sem limite)
 
 # Nomes dos CSVs de saída
 CSV_FILES = {
@@ -227,9 +227,9 @@ def main():
         # print(f"         DFS+Packing   → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 3. DFS + SumDegreeLB ----
-        # row = run_bb(inst, info, DFS, SumDegreeLB)
-        # append_csv(CSV_FILES["dfs_sumdeg"], row, HEADERS_BB)
-        # print(f"         DFS+SumDeg    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
+        row = run_bb(inst, info, DFS, SumDegreeLB)
+        append_csv(CSV_FILES["dfs_sumdeg"], row, HEADERS_BB)
+        print(f"         DFS+SumDeg    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 4. Best-First + PackingLB ----
         # row = run_bb(inst, info, BestFirst, PackingLB)
@@ -237,9 +237,9 @@ def main():
         # print(f"         BF+Packing    → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         # ---- 5. Best-First + SumDegreeLB ----
-        row = run_bb(inst, info, BestFirst, SumDegreeLB)
-        append_csv(CSV_FILES["bf_sumdeg"], row, HEADERS_BB)
-        print(f"         BF+SumDeg     → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
+        # row = run_bb(inst, info, BestFirst, SumDegreeLB)
+        # append_csv(CSV_FILES["bf_sumdeg"], row, HEADERS_BB)
+        # print(f"         BF+SumDeg     → custo={row['custo']}  nós={row['nos_explorados']}  t={row['tempo_s']}s")
 
         print()
 
