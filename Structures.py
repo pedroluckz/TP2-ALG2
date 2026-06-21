@@ -6,10 +6,10 @@ class SetCoverInstance:
         # a mascara base é um inteiro onde os 'num_elements' primeiros bits são 1
         self.base_mask = (1 << num_elements) - 1 
         
-        # Lista armazenando o custo de cada conjunto
+        # lista armazenando o custo de cada conjunto
         self.costs = [] 
         
-        # Lista armazenando a máscara de bits (inteiro) de cada conjunto
+        # lista armazenando a mascara de bits de cada conjunto
         self.sets_masks = [] 
 
     def load_from_file(self, filepath):
@@ -29,23 +29,20 @@ class SetCoverInstance:
         # custos
         self.costs = []
 
-        ## Ignorando os pesos, coloca tudo como 1
+        # ignorando os pesos, coloca tudo como 1
         for _ in range(n):
-            ignorar_custo = int(tokens[pos])  # O custo é lido, mas não usado na heurística gulosa
+            ignorar_custo = int(tokens[pos])  # O custo é lido, mas não é usado
             pos += 1
             self.costs.append(1)
 
-        # máscara de cada conjunto
+        # mascara de cada conjunto
         self.sets_masks = [0] * n
 
-        # para cada elemento
         for row in range(m):
-
             k = int(tokens[pos])
             pos += 1
 
             for _ in range(k):
-
                 col = int(tokens[pos])
                 pos += 1
 
@@ -61,50 +58,40 @@ class SetCoverInstance:
         total_cost = 0
         selected_sets = []
         
-        # Mantém uma lista dos conjuntos que ainda podem ser escolhidos
+        # mantem uma lista dos conjuntos que ainda podem ser escolhidos
         available_sets = list(range(self.num_sets))
         
-        # Continua enquanto não cobrir todos os bits (elementos) do universo
+        # continua enquanto não cobrir todos os elementos do universo
         while covered_mask != self.base_mask:
             best_set_idx = -1
-            best_ratio = float('inf')
+            best_cost = float('inf')
             
             for idx in available_sets:
-                # A mágica da bitmask: o operador '~' inverte os bits cobertos.
-                # O operador '&' cruza com a máscara do conjunto.
-                # Resultado: apenas os elementos INÉDITOS que este conjunto cobre.
+                # inverte os bits cobertos (~) e faz o and com a mascara do conjunto pra descobrir quais elementos novos esse conjunto cobriria
                 new_elements_mask = self.sets_masks[idx] & ~covered_mask
                 
-                # .bit_count() conta quantos '1's existem no binário.
-                # É nativo no Python 3.10+ e executado em C, extremamente rápido.
+                # .bit_count() conta quantos 1's existem no binário.
                 new_elements_count = new_elements_mask.bit_count()
                 
                 if new_elements_count > 0:
-                    # Calcula o custo-benefício (menor é melhor)
-                    ratio = self.costs[idx] / new_elements_count
+                    # calcula o custo-benefício (menor eh melhor)
+                    cost_ratio = self.costs[idx] / new_elements_count
                     
-                    if ratio < best_ratio:
-                        best_ratio = ratio
+                    if cost_ratio < best_cost:
+                        best_cost = cost_ratio
                         best_set_idx = idx
             
-            # Se não encontrou nenhum conjunto válido, a instância é inviável
+            # se nao encontrou nenhum conjunto valido, a instância eh inviavel
             if best_set_idx == -1:
                 return float('inf'), []
                 
-            # Atualiza o estado global marcando os novos elementos como cobertos
+            # atualiza o estado global marcando os novos elementos como cobertos
             covered_mask |= self.sets_masks[best_set_idx]
             total_cost += self.costs[best_set_idx]
             selected_sets.append(best_set_idx)
             
-            # Remove o conjunto escolhido para não ser iterado novamente
+            # remove o conjunto escolhido para não ser iterado novamente
             available_sets.remove(best_set_idx)
             
         return total_cost, selected_sets
-
-# Usamos um namedtuple para o Nó da árvore para economizar memória
-# current_cost: Custo acumulado até agora
-# covered_mask: Inteiro representando os elementos já cobertos
-# next_set_idx: Índice do próximo conjunto a ser avaliado (incluir ou não)
-# selected_sets: Lista dos índices dos conjuntos selecionados até agora
-#Node = namedtuple('Node', ['current_cost', 'covered_mask', 'next_set_idx', 'selected_sets'])
 
