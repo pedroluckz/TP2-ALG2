@@ -7,6 +7,8 @@ class InstanceGenerator:
         self.seed=seed
         self.rng = random.Random(seed)
 
+    # gera instãncias aleatórias
+
     def generate_random(self,
                         m,
                         n,
@@ -20,6 +22,7 @@ class InstanceGenerator:
 
         sets_masks = [0] * n
 
+        # adiciona elementos a cada conjunto com probabilidade density
         for s in range(n):
             for e in range(m):
 
@@ -27,6 +30,7 @@ class InstanceGenerator:
                     sets_masks[s] |= (1 << e)
 
 
+        # garante que elementos não cobertos sejam cobertos
         for e in range(m):
 
             covered = False
@@ -51,6 +55,7 @@ class InstanceGenerator:
             "sets_masks": sets_masks
         }
     
+    # gera instãncias adversariais para o guloso
     def generate_adversarial(self, m):
 
         A = set(range(0, m, 2))
@@ -59,9 +64,7 @@ class InstanceGenerator:
         costs = []
         sets_masks = []
 
-        #
         # adiciona A
-        #
         mask_A = 0
         for e in A:
             mask_A |= (1 << e)
@@ -69,9 +72,7 @@ class InstanceGenerator:
         sets_masks.append(mask_A)
         costs.append(1)
 
-        #
         # adiciona B
-        #
         mask_B = 0
         for e in B:
             mask_B |= (1 << e)
@@ -81,6 +82,7 @@ class InstanceGenerator:
 
         covered = set()
 
+        # cria conjuntos auxiliares de tamanho max(uncovered_A, uncovered_B) + 1
         while len(covered) < m:
 
             uncovered_A = len(A - covered)
@@ -114,6 +116,7 @@ class InstanceGenerator:
             "sets_masks": sets_masks
         }
     
+    # salva as instãncias em arquivos no formato OR-Library
     def save_to_file(self, instance, directory):
 
         def write_numbers(f, numbers, per_line=12):
@@ -179,9 +182,9 @@ if __name__ == "__main__":
 
     NUM_INSTANCES = 20
 
-    #
+    
     # Variando m
-    #
+    
     fixed_n = 75
 
     m_values = [
@@ -192,9 +195,8 @@ if __name__ == "__main__":
         125
     ]
 
-    #
     # Variando n
-    #
+    
     fixed_m = 75
 
     n_values = [
@@ -206,10 +208,9 @@ if __name__ == "__main__":
 
     instance_id = 0
 
-    # --------------------
+    
     # m variável
-    # --------------------
-
+    
     for density in densities:
 
         for m in m_values:
@@ -239,10 +240,8 @@ if __name__ == "__main__":
 
                 instance_id += 1
 
-    # --------------------
     # n variável
-    # --------------------
-
+    
     for density in densities:
 
         for n in n_values:
@@ -272,13 +271,13 @@ if __name__ == "__main__":
 
                 instance_id += 1
 
-    # --------------------
     # adversariais
-    # --------------------
-
+    
     for m in [125, 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000, 3250, 3500, 3750, 4000, 4250, 4500, 4750]:
 
         for rep in range(NUM_INSTANCES):
+
+            generator = InstanceGenerator()
 
             instance = generator.generate_adversarial(m)
 
