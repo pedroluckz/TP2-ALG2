@@ -4,23 +4,27 @@ Pedro Lucas Garcia Calais <br> <br>
 
 # Problema de Cobertura de Conjuntos (Set Covering Problem)
 
-Implementação e análise de desempenho de algoritmos aproximativos e exatos para a resolução da variante unicusto do Problema de Cobertura de Conjuntos (SCP).
+Implementação e análise de desempenho de algoritmos aproximativos e exatos para a resolução da variante sem peso do Problema de Cobertura de Conjuntos (SCP).
 
 ## Como Executar
 
-Para rodar o projeto, é necessário preparar as instâncias de teste:
+#### Para rodar o projeto, é necessário preparar as instâncias de teste:
 
 Crie uma pasta chamada OR_instances no diretório raiz do projeto.
 
 Baixe os arquivos de texto (.txt) das instâncias do SCP da OR-Library e coloque-os dentro dessa pasta.
 
-Ademais, instâncias sintéticas (aleatórias e adversariais) foram criadas através do arquivo Instancegenerator.py e armazenadas na pasta testresults.
+Instâncias sintéticas (aleatórias e adversariais) foram criadas através do arquivo Instancegenerator.py e armazenadas na pasta testresults.
 
 Para rodar o algoritmo aproximativo nas instâncias adversariais, execute:
+```
 python3 runadversarial.py
+```
 
 Para executar arquivo principal, que roda os algoritmos aproximativos e exatos para as instâncias aleatórias e reais,  via terminal:
+```
 python3 main.py
+```
 
 ## Funcionamento
 
@@ -52,7 +56,7 @@ Já para as instâncias reais, são executados somente o algoritmo aproximativo 
 
 ## Saída
 
-O relatório gerado inclui para cada instância:
+#### O arquivo gerado inclui para cada instância:
 
 Status final (Optimal, Timeout, Out of Memory)
 
