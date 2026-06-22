@@ -14,8 +14,13 @@ Crie uma pasta chamada OR_instances no diretório raiz do projeto.
 
 Baixe os arquivos de texto (.txt) das instâncias do SCP da OR-Library e coloque-os dentro dessa pasta.
 
-Execute o arquivo principal via terminal:
-python main.py
+Ademais, instâncias sintéticas (aleatórias e adversariais) foram criadas através do arquivo Instancegenerator.py e armazenadas na pasta testresults.
+
+Para rodar o algoritmo aproximativo nas instâncias adversariais, execute:
+python3 runadversarial.py
+
+Para executar arquivo principal, que roda os algoritmos aproximativos e exatos para as instâncias aleatórias e reais,  via terminal:
+python3 main.py
 
 ## Funcionamento
 
@@ -27,7 +32,7 @@ Algoritmo aproximativo que encontra rapidamente uma solução inicial de alta qu
 
 ### Branch-and-Bound: 
 
-Algoritmos exatos que exploram a árvore de busca para provar a solução ótima global.
+Algoritmos exatos que exploram a árvore de busca para provar a solução ótima global. 
 
 Para otimizar o tempo de execução e a memória, o projeto conta com:
 
@@ -40,10 +45,12 @@ Uso das estratégias Packing e Sum-Degree para prever o custo futuro e realizar 
 #### Estratégias de Travessia: 
 Implementação das abordagens de Busca em Profundidade (DFS) e Best-First (via Min-Heap).
 
+Nas instâncias sintéticas, é rodado o algoritmo aproximativo, assim como as 4 combinações de Lower Bounds e Estratégia de Travessia, e os resultados são salvos na pasta testresults. 
+Já para as instâncias reais, são executados somente o algoritmo aproximativo e a combinação Sum-Degree + DFS de Branch and Bound, determinada como a melhor nos experimentos sintéticos. O resultado é salvo na pasta OR_results.
+
 
 ## Saída
 
-Os resultados são exportados automaticamente para a pasta OR_results em formato .csv.
 O relatório gerado inclui para cada instância:
 
 Status final (Optimal, Timeout, Out of Memory)
