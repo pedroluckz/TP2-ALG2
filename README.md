@@ -46,6 +46,7 @@ Uso das estratégias Packing e Sum-Degree para prever o custo futuro e realizar 
 Implementação das abordagens de Busca em Profundidade (DFS) e Best-First (via Min-Heap).
 
 Nas instâncias sintéticas, é rodado o algoritmo aproximativo, assim como as 4 combinações de Lower Bounds e Estratégia de Travessia, e os resultados são salvos na pasta testresults. 
+
 Já para as instâncias reais, são executados somente o algoritmo aproximativo e a combinação Sum-Degree + DFS de Branch and Bound, determinada como a melhor nos experimentos sintéticos. O resultado é salvo na pasta OR_results.
 
 
